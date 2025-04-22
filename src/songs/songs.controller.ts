@@ -16,6 +16,7 @@ import { SongsService } from './songs.service';
 import { CreateSongDto } from './dto/create-song.dto';
 import { Connection } from 'src/common/constants/connection';
 import { UpdateSongDto } from './dto/update-song.dto';
+import { Song } from '@prisma/client';
 @Controller({ path: 'songs', scope: Scope.REQUEST })
 export class SongsController {
   constructor(
@@ -26,20 +27,25 @@ export class SongsController {
     console.log(`THIS IS CONNECTION STRING ${this.connection.CONNECTION_STRING}`);
   }
   @Post()
-  create(@Body() createSongDTO: CreateSongDto) {
-    return this.songsService.create(createSongDTO);
+  create(@Body() createSongDTOs: CreateSongDto[]) {
+    return this.songsService.create(createSongDTOs);
   }
   @Get()
-  findAll() {
-    return this.songsService.findAll();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+    limit: number = 10,
+  ): Promise<Song[]> {
+    return this.songsService.findAll(page, limit);
   }
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Song | null> {
     return this.songsService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id, @Body() UpdateSongDTO: UpdateSongDto) {
+  update(@Param('id', ParseIntPipe) id, @Body() UpdateSongDTO: UpdateSongDto): Promise<Song> {
     return this.songsService.update(id, UpdateSongDTO);
   }
 

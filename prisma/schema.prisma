@@ -9,14 +9,13 @@ datasource db {
 }
 
 model Song {
-  id           Int      @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   title        String
   artists      String[]
-  releasedDate DateTime @db.Date
+  releasedDate DateTime       @db.Date
   duration     String
   lyrics       String?
-
-  SongsArtists SongsArtists[]
+  ArtistToSong ArtistToSong[]
 }
 
 model User {
@@ -29,20 +28,50 @@ model User {
 }
 
 model Artist {
-  id     Int  @id @default(autoincrement())
-  userId Int  @unique
-  user   User @relation(fields: [userId], references: [id])
-
-  SongsArtists SongsArtists[]
+  id           Int            @id @default(autoincrement())
+  userId       Int            @unique
+  user         User           @relation(fields: [userId], references: [id])
+  ArtistToSong ArtistToSong[]
 }
 
-model SongsArtists {
+model ArtistToSong {
+  songId   Int
+  song     Song   @relation(fields: [songId], references: [id])
   artistId Int
   artist   Artist @relation(fields: [artistId], references: [id])
 
-  songId Int
-  song   Song @relation(fields: [songId], references: [id])
-
-  @@id([artistId, songId]) // composite PK
-  @@map("songs_artists") // 👈 table name override
+  @@id([artistId, songId])
 }
+
+/**
+ * model Song {
+ * id           Int      @id @default(autoincrement())
+ * title        String
+ * artists      String[]
+ * releasedDate DateTime @db.Date
+ * duration     String
+ * lyrics       String?
+ * SongsArtists SongsArtists[]
+ * }
+ * model User {
+ * id        Int     @id @default(autoincrement())
+ * firstName String
+ * lastName  String
+ * email     String
+ * password  String
+ * }
+ * model Artist {
+ * id     Int  @id @default(autoincrement())
+ * userId Int  @unique
+ * user   User @relation(fields: [userId], references: [id])
+ * SongsArtists SongsArtists[]
+ * }
+ * model SongsArtists {
+ * artistId Int
+ * artist   Artist @relation(fields: [artistId], references: [id])
+ * songId Int
+ * song   Song @relation(fields: [songId], references: [id])
+ * @@id([artistId, songId]) // composite PK
+ * @@map("songs_artists") // 👈 table name override
+ * }
+ */

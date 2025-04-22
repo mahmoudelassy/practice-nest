@@ -1,4 +1,4 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { DefaultValuePipe, Injectable, ParseIntPipe, Query, Scope } from '@nestjs/common';
 import { CreateSongDto } from './dto/create-song.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { Song } from '@prisma/client';
@@ -10,20 +10,29 @@ import { UpdateSongDto } from './dto/update-song.dto';
 export class SongsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createSongDTO: CreateSongDto): Promise<Song> {
-    const song: Partial<Song> = {};
-    song.title = createSongDTO.title;
-    song.releasedDate = createSongDTO.releasedDate;
-    song.duration = createSongDTO.duration;
-    song.lyrics = createSongDTO.lyrics;
-
-    return this.prisma.song.create({
-      data: createSongDTO,
-    });
+  async create(createSongDTOs: CreateSongDto[]): Promise<Song[]> {
+    return await Promise.all(
+      createSongDTOs.map((createSongDTO) =>
+        this.prisma.song.create({
+          data: createSongDTO,
+        }),
+      ),
+    );
   }
 
-  findAll(): Promise<Song[]> {
-    return this.prisma.song.findMany();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+    page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
+    limit: number = 10,
+  ): Promise<Song[]> {
+    return this.prisma.song.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: {
+        id: 'asc',
+      },
+    });
   }
 
   findOne(id: number): Promise<Song | null> {
@@ -36,8 +45,8 @@ export class SongsService {
       where: { id },
     });
   }
-  update(id: number, UpdateSongDTO: UpdateSongDto) {
-    return this.prisma.song.update({
+  async update(id: number, UpdateSongDTO: UpdateSongDto): Promise<Song> {
+    return await this.prisma.song.update({
       where: {
         id,
       },
