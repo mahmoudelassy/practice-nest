@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Song {
+  id           Int      @id @default(autoincrement())
+  title        String
+  artists      String[]
+  releasedDate DateTime @db.Date
+  duration     String
+  lyrics       String?
+
+  SongsArtists SongsArtists[]
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String
+  password  String
+  Artist    Artist?
+}
+
+model Artist {
+  id     Int  @id @default(autoincrement())
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  SongsArtists SongsArtists[]
+}
+
+model SongsArtists {
+  artistId Int
+  artist   Artist @relation(fields: [artistId], references: [id])
+
+  songId Int
+  song   Song @relation(fields: [songId], references: [id])
+
+  @@id([artistId, songId]) // composite PK
+  @@map("songs_artists") // 👈 table name override
+}
