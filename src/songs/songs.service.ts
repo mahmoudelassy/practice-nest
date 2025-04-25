@@ -10,28 +10,51 @@ import { UpdateSongDto } from './dto/update-song.dto';
 export class SongsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createSongDTOs: CreateSongDto[]): Promise<Song[]> {
-    return await Promise.all(
-      createSongDTOs.map((createSongDTO) =>
-        this.prisma.song.create({
-          data: createSongDTO,
-        }),
-      ),
-    );
+  async create(songDTOs: CreateSongDto[]): Promise<Song[]> {
+    const createdSongs: Song[] = [];
+
+    for (const dto of songDTOs) {
+      // 1. Find valid artists only
+      const validArtists = await this.prisma.artist.findMany({
+        where: { id: { in: dto.artists } },
+        select: { id: true },
+      });
+
+      const existingIds = validArtists.map((artist) => artist.id);
+
+      // 2. Optional strict validation: throw if some IDs are missing
+      if (existingIds.length !== dto.artists.length) {
+        throw new Error(`Invalid artist IDs for song "${dto.title}"`);
+      }
+
+      // 3. Create the song with the valid artists
+      const song = await this.prisma.song.create({
+        data: {
+          title: dto.title,
+          duration: dto.duration,
+          lyrics: dto.lyrics,
+          releasedDate: dto.releasedDate,
+          artists: {
+            connect: existingIds.map((id) => ({ id })),
+          },
+        },
+        include: { artists: true },
+      });
+
+      createdSongs.push(song);
+    }
+
+    return createdSongs;
   }
 
-  findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
-    page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
-    limit: number = 10,
-  ): Promise<Song[]> {
+  findAll(page: number = 1, limit: number = 10): Promise<Song[]> {
     return this.prisma.song.findMany({
       skip: (page - 1) * limit,
       take: limit,
       orderBy: {
         id: 'asc',
       },
+      include: { artists: true },
     });
   }
 

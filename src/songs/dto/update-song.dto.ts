@@ -10,22 +10,22 @@ import {
 export class UpdateSongDto {
   @IsString()
   @IsOptional()
-  readonly title;
+  title;
 
   @IsOptional()
   @IsArray()
   @IsNumber({}, { each: true })
-  readonly artists;
+  artists;
 
   @IsDateString()
   @IsOptional()
-  readonly releasedDate: Date;
+  releasedDate: Date;
 
   @IsMilitaryTime()
   @IsOptional()
-  readonly duration: string;
+  duration: string;
 
   @IsString()
   @IsOptional()
-  readonly lyrics: string;
+  lyrics: string;
 }

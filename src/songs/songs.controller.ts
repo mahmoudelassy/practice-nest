@@ -11,12 +11,14 @@ import {
   Put,
   Query,
   Scope,
+  UseGuards,
 } from '@nestjs/common';
 import { SongsService } from './songs.service';
 import { CreateSongDto } from './dto/create-song.dto';
 import { Connection } from 'src/common/constants/connection';
 import { UpdateSongDto } from './dto/update-song.dto';
 import { Song } from '@prisma/client';
+import { JwtArtistGuard } from 'src/common/guards/jwt-artist.guard';
 @Controller({ path: 'songs', scope: Scope.REQUEST })
 export class SongsController {
   constructor(
@@ -27,6 +29,7 @@ export class SongsController {
     console.log(`THIS IS CONNECTION STRING ${this.connection.CONNECTION_STRING}`);
   }
   @Post()
+  @UseGuards(JwtArtistGuard)
   create(@Body() createSongDTOs: CreateSongDto[]) {
     return this.songsService.create(createSongDTOs);
   }

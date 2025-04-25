@@ -8,39 +8,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Song {
-  id           Int            @id @default(autoincrement())
-  title        String
-  artists      String[]
-  releasedDate DateTime       @db.Date
-  duration     String
-  lyrics       String?
-  ArtistToSong ArtistToSong[]
+model User {
+  id          Int        @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String     @unique
+  password    String
+  enable2FA   Boolean    @default(false)
+  twoFASecret String?
+  Artist      Artist?
+  playLists   Playlist[]
 }
 
-model User {
-  id        Int     @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String
-  password  String
-  Artist    Artist?
+model Song {
+  id           Int        @id @default(autoincrement())
+  title        String
+  releasedDate DateTime   @db.Date
+  duration     String
+  lyrics       String?
+  artists      Artist[]   @relation("ArtistSongs")
+  Playlist     Playlist[]
+}
+
+model Playlist {
+  id     Int    @id @default(autoincrement())
+  name   String
+  songs  Song[]
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
 }
 
 model Artist {
-  id           Int            @id @default(autoincrement())
-  userId       Int            @unique
-  user         User           @relation(fields: [userId], references: [id])
-  ArtistToSong ArtistToSong[]
-}
-
-model ArtistToSong {
-  songId   Int
-  song     Song   @relation(fields: [songId], references: [id])
-  artistId Int
-  artist   Artist @relation(fields: [artistId], references: [id])
-
-  @@id([artistId, songId])
+  id     Int    @id @default(autoincrement())
+  userId Int    @unique
+  user   User   @relation(fields: [userId], references: [id])
+  songs  Song[] @relation("ArtistSongs")
 }
 
 /**

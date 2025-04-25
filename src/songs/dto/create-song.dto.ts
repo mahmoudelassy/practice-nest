@@ -11,22 +11,22 @@ import {
 export class CreateSongDto {
   @IsString()
   @IsNotEmpty()
-  readonly title;
+  title;
 
   @IsNotEmpty()
   @IsArray()
   @IsNumber({}, { each: true })
-  readonly artists;
+  artists;
 
   @IsDateString()
   @IsNotEmpty()
-  readonly releasedDate: Date;
+  releasedDate: Date;
 
   @IsMilitaryTime()
   @IsNotEmpty()
-  readonly duration: string;
+  duration: string;
 
   @IsString()
   @IsOptional()
-  readonly lyrics: string;
+  lyrics: string;
 }
